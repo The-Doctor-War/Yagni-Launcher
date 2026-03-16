@@ -64,6 +64,7 @@ import com.eblan.launcher.domain.usecase.launcherapps.SyncDataUseCase
 import com.eblan.launcher.domain.usecase.page.CachePageItemsUseCase
 import com.eblan.launcher.domain.usecase.page.UpdatePageItemsUseCase
 import com.eblan.launcher.domain.usecase.pin.GetPinGridItemUseCase
+import com.eblan.launcher.feature.home.model.GridItemSource
 import com.eblan.launcher.feature.home.model.HomeUiState
 import com.eblan.launcher.feature.home.model.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -133,6 +134,8 @@ internal class HomeViewModel @Inject constructor(
     val movedGridItemResult = _moveGridItemResult.asStateFlow()
 
     private val defaultDelay = 500L
+
+    private val moveDelay = 100L
 
     private val _editPageData = MutableStateFlow<EditPageData?>(null)
 
@@ -228,6 +231,10 @@ internal class HomeViewModel @Inject constructor(
 
     val resizeGridItem = _resizeGridItem.asStateFlow()
 
+    private val _gridItemSource = MutableStateFlow<GridItemSource?>(null)
+
+    val gridItemSource = _gridItemSource.asStateFlow()
+
     fun moveGridItem(
         movingGridItem: GridItem,
         x: Int,
@@ -240,6 +247,8 @@ internal class HomeViewModel @Inject constructor(
         moveGridItemJob?.cancel()
 
         moveGridItemJob = viewModelScope.launch {
+            delay(moveDelay)
+
             _moveGridItemResult.update {
                 moveGridItemUseCase(
                     movingGridItem = movingGridItem,
@@ -262,6 +271,8 @@ internal class HomeViewModel @Inject constructor(
         moveGridItemJob?.cancel()
 
         moveGridItemJob = viewModelScope.launch {
+            delay(moveDelay)
+
             _resizeGridItem.update {
                 resizeGridItemUseCase(
                     resizingGridItem = resizingGridItem,
@@ -351,6 +362,10 @@ internal class HomeViewModel @Inject constructor(
             _isCache.update {
                 false
             }
+
+            _gridItemSource.update {
+                null
+            }
         }
     }
 
@@ -366,6 +381,10 @@ internal class HomeViewModel @Inject constructor(
 
             _isCache.update {
                 false
+            }
+
+            _gridItemSource.update {
+                null
             }
         }
     }
@@ -388,6 +407,10 @@ internal class HomeViewModel @Inject constructor(
             _isCache.update {
                 false
             }
+
+            _gridItemSource.update {
+                null
+            }
         }
     }
 
@@ -401,6 +424,10 @@ internal class HomeViewModel @Inject constructor(
 
             _isCache.update {
                 false
+            }
+
+            _gridItemSource.update {
+                null
             }
         }
     }
@@ -444,6 +471,10 @@ internal class HomeViewModel @Inject constructor(
             _isCache.update {
                 false
             }
+
+            _gridItemSource.update {
+                null
+            }
         }
     }
 
@@ -466,6 +497,10 @@ internal class HomeViewModel @Inject constructor(
 
             _isCache.update {
                 false
+            }
+
+            _gridItemSource.update {
+                null
             }
         }
     }
@@ -641,6 +676,8 @@ internal class HomeViewModel @Inject constructor(
         moveGridItemJob?.cancel()
 
         moveGridItemJob = viewModelScope.launch {
+            delay(moveDelay)
+
             moveFolderGridItemUseCase(
                 folderGridItem = folderGridItem,
                 applicationInfoGridItems = applicationInfoGridItems,
@@ -656,11 +693,11 @@ internal class HomeViewModel @Inject constructor(
         }
     }
 
-    fun resetGridCacheAfterMoveFolder() {
+    fun resetGridCacheAfterMoveFolder(moveGridItemResult: MoveGridItemResult?) {
         viewModelScope.launch {
             moveGridItemJob?.cancelAndJoin()
 
-            _moveGridItemResult.value?.movingGridItem?.id?.let { id ->
+            moveGridItemResult?.movingGridItem?.id?.let { id ->
                 gridCacheRepository.deleteGridItemById(id = id)
 
                 _moveGridItemResult.update {
@@ -672,6 +709,10 @@ internal class HomeViewModel @Inject constructor(
 
             _isCache.update {
                 false
+            }
+
+            _gridItemSource.update {
+                null
             }
         }
     }
@@ -699,6 +740,12 @@ internal class HomeViewModel @Inject constructor(
     fun deleteApplicationInfoGridItem(applicationInfoGridItem: ApplicationInfoGridItem) {
         viewModelScope.launch {
             applicationInfoGridItemRepository.deleteApplicationInfoGridItem(applicationInfoGridItem = applicationInfoGridItem)
+        }
+    }
+
+    fun updateGridItemSource(gridItemSource: GridItemSource) {
+        _gridItemSource.update {
+            gridItemSource
         }
     }
 }
