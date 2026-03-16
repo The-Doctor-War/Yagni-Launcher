@@ -143,6 +143,7 @@ internal fun PagerScreen(
     textColor: TextColor,
     resizeGridItem: GridItem?,
     gridItemSource: GridItemSource?,
+    isCache: Boolean,
     onDeleteApplicationInfoGridItem: (ApplicationInfoGridItem) -> Unit,
     onDeleteGridItem: (GridItem) -> Unit,
     onResetGridCacheAfterDeleteGridItemCache: (GridItem) -> Unit,
@@ -712,6 +713,7 @@ internal fun PagerScreen(
                             statusBarNotifications = pagerScreenState.statusBarNotifications,
                             textColor = textColor,
                             isOpenFolder = folderGridItem != null,
+                            isCache = isCache,
                             onDraggingGridItem = {
                                 onDraggingGridItem(gridItems)
                             },
@@ -836,6 +838,7 @@ internal fun PagerScreen(
                             statusBarNotifications = pagerScreenState.statusBarNotifications,
                             textColor = textColor,
                             isOpenFolder = folderGridItem != null,
+                            isCache = isCache,
                             onDraggingGridItem = {
                                 onDraggingGridItem(gridItems)
                             },

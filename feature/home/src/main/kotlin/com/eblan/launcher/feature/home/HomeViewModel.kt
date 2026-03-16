@@ -119,6 +119,8 @@ internal class HomeViewModel @Inject constructor(
 ) : ViewModel() {
     private val _isCache = MutableStateFlow(false)
 
+    val isCache = _isCache.asStateFlow()
+
     val homeUiState = getHomeDataUseCase(isCacheFlow = _isCache).map(HomeUiState::Success).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

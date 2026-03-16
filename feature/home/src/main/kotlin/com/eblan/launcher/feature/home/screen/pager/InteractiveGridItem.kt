@@ -104,6 +104,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
     statusBarNotifications: Map<String, Int>,
     textColor: TextColor,
     isOpenFolder: Boolean,
+    isCache: Boolean,
     onDraggingGridItem: () -> Unit,
     onOpenAppDrawer: () -> Unit,
     onTapApplicationInfo: (
@@ -170,6 +171,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 statusBarNotifications = statusBarNotifications,
                 textColor = currentTextColor,
                 isOpenFolder = isOpenFolder,
+                isCache = isCache,
                 onDraggingGridItem = onDraggingGridItem,
                 onOpenAppDrawer = onOpenAppDrawer,
                 onTapApplicationInfo = onTapApplicationInfo,
@@ -195,6 +197,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 isScrollInProgress = isScrollInProgress,
                 isSelected = isSelected,
                 textColor = currentTextColor,
+                isCache = isCache,
                 onDraggingGridItem = onDraggingGridItem,
                 onUpdateGridItemSource = onUpdateGridItemSource,
                 onUpdateImageBitmap = onUpdateImageBitmap,
@@ -220,6 +223,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 isScrollInProgress = isScrollInProgress,
                 isSelected = isSelected,
                 textColor = currentTextColor,
+                isCache = isCache,
                 onDraggingGridItem = onDraggingGridItem,
                 onOpenAppDrawer = onOpenAppDrawer,
                 onTapShortcutInfo = onTapShortcutInfo,
@@ -247,6 +251,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 isScrollInProgress = isScrollInProgress,
                 isSelected = isSelected,
                 textColor = currentTextColor,
+                isCache = isCache,
                 onDraggingGridItem = onDraggingGridItem,
                 onOpenAppDrawer = onOpenAppDrawer,
                 onTap = onTapFolderGridItem,
@@ -273,6 +278,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 isScrollInProgress = isScrollInProgress,
                 isSelected = isSelected,
                 textColor = currentTextColor,
+                isCache = isCache,
                 onDraggingGridItem = onDraggingGridItem,
                 onOpenAppDrawer = onOpenAppDrawer,
                 onTapShortcutConfig = onTapShortcutConfig,
@@ -305,6 +311,7 @@ private fun SharedTransitionScope.InteractiveApplicationInfoGridItem(
     statusBarNotifications: Map<String, Int>,
     textColor: Color,
     isOpenFolder: Boolean,
+    isCache: Boolean,
     onDraggingGridItem: () -> Unit,
     onOpenAppDrawer: () -> Unit,
     onTapApplicationInfo: (
@@ -363,6 +370,8 @@ private fun SharedTransitionScope.InteractiveApplicationInfoGridItem(
 
     val isInsideOpenFolder = isSelected && isOpenFolder
 
+    val isGesture = !isLongPress && !isCache
+
     LaunchedEffect(key1 = drag) {
         handleDrag(
             drag = drag,
@@ -378,7 +387,7 @@ private fun SharedTransitionScope.InteractiveApplicationInfoGridItem(
         modifier = modifier
             .pointerInput(key1 = drag) {
                 detectTapGestures(
-                    onDoubleTap = if (!isLongPress) {
+                    onDoubleTap = if (isGesture) {
                         {
                             onDoubleTap(
                                 context = context,
@@ -391,7 +400,7 @@ private fun SharedTransitionScope.InteractiveApplicationInfoGridItem(
                     } else {
                         null
                     },
-                    onLongPress = if (!isLongPress) {
+                    onLongPress = if (isGesture) {
                         {
                             onLongPress(
                                 scope = scope,
@@ -415,7 +424,7 @@ private fun SharedTransitionScope.InteractiveApplicationInfoGridItem(
                     } else {
                         null
                     },
-                    onTap = if (!isLongPress) {
+                    onTap = if (isGesture) {
                         {
                             scope.launch {
                                 onTapApplicationInfo(
@@ -527,6 +536,7 @@ private fun SharedTransitionScope.InteractiveWidgetGridItem(
     isScrollInProgress: Boolean,
     isSelected: Boolean,
     textColor: Color,
+    isCache: Boolean,
     onDraggingGridItem: () -> Unit,
     onUpdateGridItemSource: (GridItemSource) -> Unit,
     onUpdateImageBitmap: (ImageBitmap) -> Unit,
@@ -561,6 +571,8 @@ private fun SharedTransitionScope.InteractiveWidgetGridItem(
     val hasInteraction = isSelected && isLongPress && (drag == Drag.Start || drag == Drag.Dragging)
 
     val isVisibleWhiteBox = isSelected && drag == Drag.Dragging
+
+    val isGesture = !isLongPress && !isCache
 
     LaunchedEffect(key1 = drag) {
         handleDrag(
@@ -613,7 +625,7 @@ private fun SharedTransitionScope.InteractiveWidgetGridItem(
                     },
                     modifier = commonModifier,
                     update = { view ->
-                        if (!isLongPress) {
+                        if (isGesture) {
                             view.setOnLongClickListener {
                                 onLongPress(
                                     scope = scope,
@@ -645,7 +657,7 @@ private fun SharedTransitionScope.InteractiveWidgetGridItem(
                     contentDescription = null,
                     modifier = commonModifier.pointerInput(key1 = drag) {
                         detectTapGestures(
-                            onLongPress = if (!isLongPress) {
+                            onLongPress = if (isGesture) {
                                 {
                                     onLongPress(
                                         scope = scope,
@@ -690,6 +702,7 @@ private fun SharedTransitionScope.InteractiveShortcutInfoGridItem(
     isScrollInProgress: Boolean,
     isSelected: Boolean,
     textColor: Color,
+    isCache: Boolean,
     onDraggingGridItem: () -> Unit,
     onOpenAppDrawer: () -> Unit,
     onTapShortcutInfo: (
@@ -743,6 +756,8 @@ private fun SharedTransitionScope.InteractiveShortcutInfoGridItem(
 
     val isVisibleWhiteBox = isSelected && drag == Drag.Dragging
 
+    val isGesture = !isLongPress && !isCache
+
     LaunchedEffect(key1 = drag) {
         handleDrag(
             drag = drag,
@@ -758,7 +773,7 @@ private fun SharedTransitionScope.InteractiveShortcutInfoGridItem(
         modifier = modifier
             .pointerInput(key1 = drag) {
                 detectTapGestures(
-                    onDoubleTap = if (!isLongPress) {
+                    onDoubleTap = if (isGesture) {
                         {
                             onDoubleTap(
                                 context = context,
@@ -771,7 +786,7 @@ private fun SharedTransitionScope.InteractiveShortcutInfoGridItem(
                     } else {
                         null
                     },
-                    onLongPress = if (!isLongPress) {
+                    onLongPress = if (isGesture) {
                         {
                             onLongPress(
                                 scope = scope,
@@ -795,7 +810,7 @@ private fun SharedTransitionScope.InteractiveShortcutInfoGridItem(
                     } else {
                         null
                     },
-                    onTap = if (!isLongPress) {
+                    onTap = if (isGesture) {
                         {
                             if (hasShortcutHostPermission && data.isEnabled) {
                                 scope.launch {
@@ -896,6 +911,7 @@ private fun SharedTransitionScope.InteractiveFolderGridItem(
     isScrollInProgress: Boolean,
     isSelected: Boolean,
     textColor: Color,
+    isCache: Boolean,
     onDraggingGridItem: () -> Unit,
     onOpenAppDrawer: () -> Unit,
     onTap: () -> Unit,
@@ -939,6 +955,8 @@ private fun SharedTransitionScope.InteractiveFolderGridItem(
 
     val isVisibleWhiteBox = isSelected && drag == Drag.Dragging
 
+    val isGesture = !isLongPress && !isCache
+
     LaunchedEffect(key1 = drag) {
         handleDrag(
             drag = drag,
@@ -954,7 +972,7 @@ private fun SharedTransitionScope.InteractiveFolderGridItem(
         modifier = modifier
             .pointerInput(key1 = drag) {
                 detectTapGestures(
-                    onDoubleTap = if (!isLongPress) {
+                    onDoubleTap = if (isGesture) {
                         {
                             onDoubleTap(
                                 context = context,
@@ -967,7 +985,7 @@ private fun SharedTransitionScope.InteractiveFolderGridItem(
                     } else {
                         null
                     },
-                    onLongPress = if (!isLongPress) {
+                    onLongPress = if (isGesture) {
                         {
                             onLongPress(
                                 scope = scope,
@@ -991,7 +1009,7 @@ private fun SharedTransitionScope.InteractiveFolderGridItem(
                     } else {
                         null
                     },
-                    onTap = if (!isLongPress) {
+                    onTap = if (isGesture) {
                         {
                             onTap()
                         }
@@ -1115,6 +1133,7 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
     isScrollInProgress: Boolean,
     isSelected: Boolean,
     textColor: Color,
+    isCache: Boolean,
     onDraggingGridItem: () -> Unit,
     onOpenAppDrawer: () -> Unit,
     onTapShortcutConfig: (String) -> Unit,
@@ -1194,6 +1213,8 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
 
     val isVisibleWhiteBox = isSelected && drag == Drag.Dragging
 
+    val isGesture = !isLongPress && !isCache
+
     LaunchedEffect(key1 = drag) {
         handleDrag(
             drag = drag,
@@ -1209,7 +1230,7 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
         modifier = modifier
             .pointerInput(key1 = drag) {
                 detectTapGestures(
-                    onDoubleTap = if (!isLongPress) {
+                    onDoubleTap = if (isGesture) {
                         {
                             onDoubleTap(
                                 context = context,
@@ -1222,7 +1243,7 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
                     } else {
                         null
                     },
-                    onLongPress = if (!isLongPress) {
+                    onLongPress = if (isGesture) {
                         {
                             onLongPress(
                                 scope = scope,
@@ -1246,7 +1267,7 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
                     } else {
                         null
                     },
-                    onTap = if (!isLongPress) {
+                    onTap = if (isGesture) {
                         {
                             data.shortcutIntentUri?.let(onTapShortcutConfig)
                         }
