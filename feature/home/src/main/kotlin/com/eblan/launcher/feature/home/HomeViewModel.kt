@@ -53,7 +53,6 @@ import com.eblan.launcher.domain.usecase.grid.MoveFolderGridItemOutsideFolderUse
 import com.eblan.launcher.domain.usecase.grid.MoveFolderGridItemUseCase
 import com.eblan.launcher.domain.usecase.grid.MoveGridItemUseCase
 import com.eblan.launcher.domain.usecase.grid.ResizeGridItemUseCase
-import com.eblan.launcher.domain.usecase.grid.ShowFolderWhenDraggingUseCase
 import com.eblan.launcher.domain.usecase.grid.UpdateGridItemsAfterMoveUseCase
 import com.eblan.launcher.domain.usecase.grid.UpdateGridItemsAfterResizeUseCase
 import com.eblan.launcher.domain.usecase.iconpack.GetIconPackFilePathsUseCase
@@ -116,7 +115,6 @@ internal class HomeViewModel @Inject constructor(
     private val moveFolderGridItemUseCase: MoveFolderGridItemUseCase,
     private val moveFolderGridItemOutsideFolderUseCase: MoveFolderGridItemOutsideFolderUseCase,
     private val applicationInfoGridItemRepository: ApplicationInfoGridItemRepository,
-    private val showFolderWhenDraggingUseCase: ShowFolderWhenDraggingUseCase,
 ) : ViewModel() {
     private val _isCache = MutableStateFlow(false)
 
@@ -344,7 +342,7 @@ internal class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             moveGridItemJob?.cancelAndJoin()
 
-            _resizeGridItem.update {
+            _moveGridItemResult.update {
                 null
             }
 
@@ -431,9 +429,15 @@ internal class HomeViewModel @Inject constructor(
         }
     }
 
-    fun deleteGridItemCache(gridItem: GridItem) {
+    fun resetGridCacheAfterDeleteGridItemCache(gridItem: GridItem) {
         viewModelScope.launch {
-            gridCacheRepository.deleteGridItem(gridItem = gridItem)
+            moveGridItemJob?.cancelAndJoin()
+
+            _moveGridItemResult.update {
+                null
+            }
+
+            gridCacheRepository.deleteGridItemById(id = gridItem.id)
 
             gridRepository.updateGridItems(gridItems = gridCacheRepository.gridItemsCache.first())
 
@@ -443,20 +447,22 @@ internal class HomeViewModel @Inject constructor(
         }
     }
 
-    fun deleteWidgetGridItemCache(
+    fun resetGridCacheAfterDeleteWidgetGridItemCache(
         gridItem: GridItem,
         appWidgetId: Int,
     ) {
         viewModelScope.launch {
-            appWidgetHostWrapper.deleteAppWidgetId(appWidgetId = appWidgetId)
-
-            gridCacheRepository.deleteGridItem(gridItem = gridItem)
-
-            gridRepository.updateGridItems(gridItems = gridCacheRepository.gridItemsCache.first())
+            moveGridItemJob?.cancelAndJoin()
 
             _moveGridItemResult.update {
                 null
             }
+
+            appWidgetHostWrapper.deleteAppWidgetId(appWidgetId = appWidgetId)
+
+            gridCacheRepository.deleteGridItemById(id = gridItem.id)
+
+            gridRepository.updateGridItems(gridItems = gridCacheRepository.gridItemsCache.first())
 
             _isCache.update {
                 false
@@ -507,7 +513,7 @@ internal class HomeViewModel @Inject constructor(
         pinItemRequestType: PinItemRequestType.ShortcutInfo,
     ) {
         viewModelScope.launch {
-            gridCacheRepository.deleteGridItem(gridItem = moveGridItemResult.movingGridItem)
+            gridCacheRepository.deleteGridItemById(id = moveGridItemResult.movingGridItem.id)
 
             val eblanApplicationInfoIcon =
                 packageManagerWrapper.getComponentName(packageName = pinItemRequestType.packageName)
@@ -654,6 +660,14 @@ internal class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             moveGridItemJob?.cancelAndJoin()
 
+            _moveGridItemResult.value?.movingGridItem?.id?.let { id ->
+                gridCacheRepository.deleteGridItemById(id = id)
+
+                _moveGridItemResult.update {
+                    null
+                }
+            }
+
             gridRepository.updateGridItems(gridItems = gridCacheRepository.gridItemsCache.first())
 
             _isCache.update {
@@ -668,44 +682,17 @@ internal class HomeViewModel @Inject constructor(
         applicationInfoGridItems: List<ApplicationInfoGridItem>,
     ) {
         viewModelScope.launch {
-            moveGridItemJob?.cancel()
+            moveGridItemJob?.cancelAndJoin()
 
             _folderGridItemId.update {
                 null
             }
 
-            moveGridItemJob = viewModelScope.launch {
-                moveFolderGridItemOutsideFolderUseCase(
-                    folderGridItem = folderGridItem,
-                    movingApplicationInfoGridItem = movingApplicationInfoGridItem,
-                    applicationInfoGridItems = applicationInfoGridItems,
-                )
-            }
-        }
-    }
-
-    fun showFolderWhenDragging(
-        id: String,
-        conflictingGridItem: GridItem,
-        movingGridItem: GridItem,
-    ) {
-        viewModelScope.launch {
-            moveGridItemJob?.cancel()
-
-            _moveGridItemResult.update {
-                null
-            }
-
-            viewModelScope.launch {
-                showFolderWhenDraggingUseCase(
-                    conflictingGridItem = conflictingGridItem,
-                    movingGridItem = movingGridItem,
-                )
-
-                _folderGridItemId.update {
-                    id
-                }
-            }
+            moveFolderGridItemOutsideFolderUseCase(
+                folderGridItem = folderGridItem,
+                movingApplicationInfoGridItem = movingApplicationInfoGridItem,
+                applicationInfoGridItems = applicationInfoGridItems,
+            )
         }
     }
 

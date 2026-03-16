@@ -66,6 +66,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest.Builder
 import coil3.request.addLastModifiedToFileCacheKey
 import com.eblan.launcher.designsystem.icon.EblanLauncherIcons
+import com.eblan.launcher.domain.model.Associate
 import com.eblan.launcher.domain.model.GridItem
 import com.eblan.launcher.domain.model.GridItemData
 import com.eblan.launcher.domain.model.GridItemSettings
@@ -129,6 +130,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
         intSize: IntSize,
     ) -> Unit,
     onDismissGridItemPopup: () -> Unit,
+    onUpdateAssociate: (Associate) -> Unit,
 ) {
     val isSelected = gridItemSource != null && gridItem.id == gridItemSource.gridItem.id
 
@@ -177,6 +179,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 onUpdateSharedElementKey = onUpdateSharedElementKey,
                 onShowGridItemPopup = onShowGridItemPopup,
                 onDismissGridItemPopup = onDismissGridItemPopup,
+                onUpdateAssociate = onUpdateAssociate,
             )
         }
 
@@ -199,6 +202,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 onUpdateSharedElementKey = onUpdateSharedElementKey,
                 onShowGridItemPopup = onShowGridItemPopup,
                 onDismissGridItemPopup = onDismissGridItemPopup,
+                onUpdateAssociate = onUpdateAssociate,
             )
         }
 
@@ -225,6 +229,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 onUpdateSharedElementKey = onUpdateSharedElementKey,
                 onShowGridItemPopup = onShowGridItemPopup,
                 onDismissGridItemPopup = onDismissGridItemPopup,
+                onUpdateAssociate = onUpdateAssociate,
             )
         }
 
@@ -251,6 +256,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 onUpdateSharedElementKey = onUpdateSharedElementKey,
                 onShowGridItemPopup = onShowGridItemPopup,
                 onDismissGridItemPopup = onDismissGridItemPopup,
+                onUpdateAssociate = onUpdateAssociate,
             )
         }
 
@@ -276,6 +282,7 @@ internal fun SharedTransitionScope.InteractiveGridItemContent(
                 onUpdateSharedElementKey = onUpdateSharedElementKey,
                 onShowGridItemPopup = onShowGridItemPopup,
                 onDismissGridItemPopup = onDismissGridItemPopup,
+                onUpdateAssociate = onUpdateAssociate,
             )
         }
     }
@@ -315,6 +322,7 @@ private fun SharedTransitionScope.InteractiveApplicationInfoGridItem(
         intSize: IntSize,
     ) -> Unit,
     onDismissGridItemPopup: () -> Unit,
+    onUpdateAssociate: (Associate) -> Unit,
 ) {
     val launcherApps = LocalLauncherApps.current
 
@@ -396,6 +404,7 @@ private fun SharedTransitionScope.InteractiveApplicationInfoGridItem(
                                 onUpdateOverlayBounds = onUpdateOverlayBounds,
                                 onUpdateSharedElementKey = onUpdateSharedElementKey,
                                 onShowGridItemPopup = onShowGridItemPopup,
+                                onUpdateAssociate = onUpdateAssociate,
                             )
                         }
                     } else {
@@ -528,6 +537,7 @@ private fun SharedTransitionScope.InteractiveWidgetGridItem(
         intSize: IntSize,
     ) -> Unit,
     onDismissGridItemPopup: () -> Unit,
+    onUpdateAssociate: (Associate) -> Unit,
 ) {
     var intOffset by remember { mutableStateOf(IntOffset.Zero) }
 
@@ -616,6 +626,7 @@ private fun SharedTransitionScope.InteractiveWidgetGridItem(
                                     onUpdateOverlayBounds = onUpdateOverlayBounds,
                                     onUpdateSharedElementKey = onUpdateSharedElementKey,
                                     onShowGridItemPopup = onShowGridItemPopup,
+                                    onUpdateAssociate = onUpdateAssociate,
                                 )
 
                                 true
@@ -668,6 +679,7 @@ private fun SharedTransitionScope.InteractiveShortcutInfoGridItem(
         intSize: IntSize,
     ) -> Unit,
     onDismissGridItemPopup: () -> Unit,
+    onUpdateAssociate: (Associate) -> Unit,
 ) {
     val launcherApps = LocalLauncherApps.current
 
@@ -745,6 +757,7 @@ private fun SharedTransitionScope.InteractiveShortcutInfoGridItem(
                                 onUpdateOverlayBounds = onUpdateOverlayBounds,
                                 onUpdateSharedElementKey = onUpdateSharedElementKey,
                                 onShowGridItemPopup = onShowGridItemPopup,
+                                onUpdateAssociate = onUpdateAssociate,
                             )
                         }
                     } else {
@@ -868,6 +881,7 @@ private fun SharedTransitionScope.InteractiveFolderGridItem(
         intSize: IntSize,
     ) -> Unit,
     onDismissGridItemPopup: () -> Unit,
+    onUpdateAssociate: (Associate) -> Unit,
 ) {
     val launcherApps = LocalLauncherApps.current
 
@@ -939,6 +953,7 @@ private fun SharedTransitionScope.InteractiveFolderGridItem(
                                 onUpdateOverlayBounds = onUpdateOverlayBounds,
                                 onUpdateSharedElementKey = onUpdateSharedElementKey,
                                 onShowGridItemPopup = onShowGridItemPopup,
+                                onUpdateAssociate = onUpdateAssociate,
                             )
                         }
                     } else {
@@ -1085,6 +1100,7 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
         intSize: IntSize,
     ) -> Unit,
     onDismissGridItemPopup: () -> Unit,
+    onUpdateAssociate: (Associate) -> Unit,
 ) {
     val launcherApps = LocalLauncherApps.current
 
@@ -1192,6 +1208,7 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
                                 onUpdateOverlayBounds = onUpdateOverlayBounds,
                                 onUpdateSharedElementKey = onUpdateSharedElementKey,
                                 onShowGridItemPopup = onShowGridItemPopup,
+                                onUpdateAssociate = onUpdateAssociate,
                             )
                         }
                     } else {
