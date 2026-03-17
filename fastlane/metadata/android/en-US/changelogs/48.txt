@@ -1,0 +1,27 @@
+- Refactored `InteractiveGridItem` and simplified drag handling logic:
+- Refactored gesture handling in home screen grid items to prevent interactions during synchronization:
+- Refactored grid item state management and interaction logic to improve state consistency during long-press and drag operations: (#649)
+- Fold opening race condition (#648)
+- Refactored popup and overlay state management in `PagerScreen` to use nullable types for coordinates and sizes:
+- Fixes #646
+- Refactored grid item movement logic to centralize "lock movement" handling within the UI layer:
+- Refactored folder creation hover logic in `DragGridItemHelper.kt`:
+- Removed unused keys
+- Refactored scroll state handling during drag-and-drop operations in `PagerScreen`:
+- Refactored popup management and state handling in `PagerScreen` and `PagerScreenState` to improve consistency and prevent invalid rendering:
+- Improve Data Sync (#638)
+- Flaky new grid item source (#636)
+- Removed duplicated app widget screen (#634)
+- Fixed bugs on resize and drag widget
+- Refactored widget long-press handling in `InteractiveGridItem`
+- Refactored folder grid item sorting and state management:
+- Simplified `hasInteraction` state logic in `ApplicationScreen`
+- Refactored application screen and drag-and-drop logic:
+- Fixed grid drop logic
+- Refactored gesture handling and extracted common logic into `onDoubleTap` and `onLongPress` modifiers. Added conditional checks to prevent simultaneous gesture interactions during long-press states.
+- Sort parameters
+- Merge grid cache and pager screen (#629)
+- Refactor: Decouple grid item source and bitmap updates in drag-and-drop logic
+- Refactor: Centralize dragging logic in `GridItemContent`
+- Compose sort params (#627)
+- Refactor: Reorganize home feature components and extract gesture logic
