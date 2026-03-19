@@ -55,7 +55,6 @@ import androidx.compose.foundation.rememberOverscrollEffect
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -107,6 +106,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
 import coil3.compose.rememberConstraintsSizeResolver
 import coil3.request.ImageRequest
@@ -1013,15 +1013,7 @@ private fun SharedTransitionScope.EblanApplicationInfoItem(
 
     val hasInteraction = isLongPress && (drag == Drag.Start || drag == Drag.Dragging)
 
-    val sizeResolver = rememberConstraintsSizeResolver()
-
-    val painter = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(eblanApplicationInfo.customIcon ?: icon)
-            .addLastModifiedToFileCacheKey(true)
-            .size(sizeResolver)
-            .build(),
-    )
+    val alpha = if (hasInteraction) 0f else 1f
 
     LaunchedEffect(key1 = drag) {
         when (drag) {
@@ -1156,27 +1148,30 @@ private fun SharedTransitionScope.EblanApplicationInfoItem(
         horizontalAlignment = horizontalAlignment,
         verticalArrangement = verticalArrangement,
     ) {
-        if (!hasInteraction) {
-            Box(modifier = Modifier.size(appDrawerSettings.gridItemSettings.iconSize.dp)) {
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .then(sizeResolver)
-                        .matchParentSize()
-                        .drawWithContent {
-                            graphicsLayer.record {
-                                this@drawWithContent.drawContent()
-                            }
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(eblanApplicationInfo.customIcon ?: icon)
+                .addLastModifiedToFileCacheKey(true)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .size(appDrawerSettings.gridItemSettings.iconSize.dp)
+                .alpha(alpha)
+                .drawWithContent {
+                    graphicsLayer.record {
+                        this@drawWithContent.drawContent()
+                    }
 
-                            drawLayer(graphicsLayer)
-                        }
-                        .onGloballyPositioned { layoutCoordinates ->
-                            intOffset = layoutCoordinates.positionInRoot().round()
+                    drawLayer(graphicsLayer)
+                }
+                .onGloballyPositioned { layoutCoordinates ->
+                    intOffset = layoutCoordinates.positionInRoot().round()
 
-                            intSize = layoutCoordinates.size
-                        }
-                        .sharedElementWithCallerManagedVisibility(
+                    intSize = layoutCoordinates.size
+                }
+                .run {
+                    if (!hasInteraction) {
+                        sharedElementWithCallerManagedVisibility(
                             rememberSharedContentState(
                                 key = SharedElementKey(
                                     id = applicationScreenId,
@@ -1184,36 +1179,25 @@ private fun SharedTransitionScope.EblanApplicationInfoItem(
                                 ),
                             ),
                             visible = drag == Drag.None || drag == Drag.Cancel || drag == Drag.End,
-                        ),
-                )
-
-                if (eblanApplicationInfo.serialNumber != 0L) {
-                    ElevatedCard(
-                        modifier = Modifier
-                            .size((appDrawerSettings.gridItemSettings.iconSize * 0.40).dp)
-                            .align(Alignment.BottomEnd),
-                    ) {
-                        Icon(
-                            imageVector = EblanLauncherIcons.Work,
-                            contentDescription = null,
-                            modifier = Modifier.padding(2.dp),
                         )
+                    } else {
+                        this
                     }
-                }
-            }
+                },
+        )
 
-            if (appDrawerSettings.gridItemSettings.showLabel) {
-                Spacer(modifier = Modifier.height(10.dp))
+        if (appDrawerSettings.gridItemSettings.showLabel) {
+            Spacer(modifier = Modifier.height(10.dp))
 
-                Text(
-                    text = eblanApplicationInfo.customLabel ?: eblanApplicationInfo.label,
-                    color = textColor,
-                    textAlign = TextAlign.Center,
-                    maxLines = maxLines,
-                    fontSize = appDrawerSettings.gridItemSettings.textSize.sp,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            Text(
+                modifier = Modifier.alpha(alpha),
+                text = eblanApplicationInfo.customLabel ?: eblanApplicationInfo.label,
+                color = textColor,
+                textAlign = TextAlign.Center,
+                maxLines = maxLines,
+                fontSize = appDrawerSettings.gridItemSettings.textSize.sp,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

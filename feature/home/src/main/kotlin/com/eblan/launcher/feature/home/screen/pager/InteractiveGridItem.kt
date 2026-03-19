@@ -19,7 +19,6 @@ package com.eblan.launcher.feature.home.screen.pager
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -31,8 +30,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,11 +61,8 @@ import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil3.compose.AsyncImage
-import coil3.compose.rememberAsyncImagePainter
-import coil3.compose.rememberConstraintsSizeResolver
 import coil3.request.ImageRequest.Builder
 import coil3.request.addLastModifiedToFileCacheKey
-import com.eblan.launcher.designsystem.icon.EblanLauncherIcons
 import com.eblan.launcher.domain.model.Associate
 import com.eblan.launcher.domain.model.GridItem
 import com.eblan.launcher.domain.model.GridItemData
@@ -370,14 +364,7 @@ private fun SharedTransitionScope.InteractiveApplicationInfoGridItem(
 
     val isGesture = !isLongPress && !isCache
 
-    val sizeResolver = rememberConstraintsSizeResolver()
-
-    val painter = rememberAsyncImagePainter(
-        model = Builder(LocalContext.current).data(data.customIcon ?: icon)
-            .addLastModifiedToFileCacheKey(true)
-            .size(sizeResolver)
-            .build(),
-    )
+    val alpha = if (hasInteraction) 0f else 1f
 
     LaunchedEffect(key1 = drag) {
         handleDrag(
@@ -460,74 +447,69 @@ private fun SharedTransitionScope.InteractiveApplicationInfoGridItem(
         horizontalAlignment = horizontalAlignment,
         verticalArrangement = verticalArrangement,
     ) {
-        if (!hasInteraction) {
-            Box(modifier = Modifier.size(gridItemSettings.iconSize.dp)) {
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .then(sizeResolver)
-                        .matchParentSize()
-                        .drawWithContent {
-                            graphicsLayer.record {
-                                this@drawWithContent.drawContent()
-                            }
-
-                            drawLayer(graphicsLayer)
+        Box(
+            modifier = Modifier
+                .size(gridItemSettings.iconSize.dp)
+                .alpha(alpha),
+        ) {
+            AsyncImage(
+                model = Builder(LocalContext.current).data(data.customIcon ?: icon)
+                    .addLastModifiedToFileCacheKey(true)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier
+                    .matchParentSize()
+                    .drawWithContent {
+                        graphicsLayer.record {
+                            this@drawWithContent.drawContent()
                         }
-                        .onGloballyPositioned { layoutCoordinates ->
-                            intOffset = layoutCoordinates.positionInRoot().round()
 
-                            intSize = layoutCoordinates.size
-                        }
-                        .sharedElementWithCallerManagedVisibility(
-                            rememberSharedContentState(
-                                key = SharedElementKey(
-                                    id = gridItem.id,
-                                    parent = SharedElementKey.Parent.Grid,
+                        drawLayer(graphicsLayer)
+                    }
+                    .onGloballyPositioned { layoutCoordinates ->
+                        intOffset = layoutCoordinates.positionInRoot().round()
+
+                        intSize = layoutCoordinates.size
+                    }.run {
+                        if (!hasInteraction) {
+                            sharedElementWithCallerManagedVisibility(
+                                rememberSharedContentState(
+                                    key = SharedElementKey(
+                                        id = gridItem.id,
+                                        parent = SharedElementKey.Parent.Grid,
+                                    ),
                                 ),
-                            ),
-                            visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
+                                visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
+                            )
+                        } else {
+                            this
+                        }
+                    },
+            )
+
+            if (settings.isNotificationAccessGranted() && hasNotifications) {
+                Box(
+                    modifier = Modifier
+                        .size((gridItemSettings.iconSize * 0.3).dp)
+                        .align(Alignment.TopEnd)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape,
                         ),
                 )
-
-                if (settings.isNotificationAccessGranted() && hasNotifications) {
-                    Box(
-                        modifier = Modifier
-                            .size((gridItemSettings.iconSize * 0.3).dp)
-                            .align(Alignment.TopEnd)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = CircleShape,
-                            ),
-                    )
-                }
-
-                if (data.serialNumber != 0L) {
-                    ElevatedCard(
-                        modifier = Modifier
-                            .size((gridItemSettings.iconSize * 0.4).dp)
-                            .align(Alignment.BottomEnd),
-                    ) {
-                        Icon(
-                            imageVector = EblanLauncherIcons.Work,
-                            contentDescription = null,
-                            modifier = Modifier.padding(2.dp),
-                        )
-                    }
-                }
             }
+        }
 
-            if (gridItemSettings.showLabel) {
-                Text(
-                    text = data.customLabel ?: data.label,
-                    color = textColor,
-                    textAlign = TextAlign.Center,
-                    maxLines = maxLines,
-                    fontSize = gridItemSettings.textSize.sp,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+        if (gridItemSettings.showLabel) {
+            Text(
+                modifier = Modifier.alpha(alpha),
+                text = data.customLabel ?: data.label,
+                color = textColor,
+                textAlign = TextAlign.Center,
+                maxLines = maxLines,
+                fontSize = gridItemSettings.textSize.sp,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
@@ -581,6 +563,8 @@ private fun SharedTransitionScope.InteractiveWidgetGridItem(
 
     val isGesture = !isLongPress && !isCache
 
+    val alpha = if (hasInteraction) 0f else 1f
+
     LaunchedEffect(key1 = drag) {
         handleDrag(
             drag = drag,
@@ -597,43 +581,81 @@ private fun SharedTransitionScope.InteractiveWidgetGridItem(
             .fillMaxSize()
             .whiteBox(textColor = textColor, visible = isVisibleWhiteBox),
     ) {
-        if (!hasInteraction) {
-            val commonModifier = Modifier
-                .matchParentSize()
-                .drawWithContent {
-                    graphicsLayer.record {
-                        this@drawWithContent.drawContent()
-                    }
-
-                    drawLayer(graphicsLayer)
+        val commonModifier = Modifier
+            .matchParentSize()
+            .alpha(alpha)
+            .drawWithContent {
+                graphicsLayer.record {
+                    this@drawWithContent.drawContent()
                 }
-                .onGloballyPositioned { layoutCoordinates ->
-                    intOffset = layoutCoordinates.positionInRoot().round()
 
-                    intSize = layoutCoordinates.size
-                }
-                .sharedElementWithCallerManagedVisibility(
-                    rememberSharedContentState(
-                        key = SharedElementKey(
-                            id = gridItem.id,
-                            parent = SharedElementKey.Parent.Grid,
+                drawLayer(graphicsLayer)
+            }
+            .onGloballyPositioned { layoutCoordinates ->
+                intOffset = layoutCoordinates.positionInRoot().round()
+
+                intSize = layoutCoordinates.size
+            }
+            .run {
+                if (!hasInteraction) {
+                    sharedElementWithCallerManagedVisibility(
+                        rememberSharedContentState(
+                            key = SharedElementKey(
+                                id = gridItem.id,
+                                parent = SharedElementKey.Parent.Grid,
+                            ),
                         ),
-                    ),
-                    visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
-                )
+                        visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
+                    )
+                } else {
+                    this
+                }
+            }
 
-            if (appWidgetInfo != null) {
-                AndroidView(
-                    factory = {
-                        appWidgetHost.createView(
-                            appWidgetId = data.appWidgetId,
-                            appWidgetProviderInfo = appWidgetInfo,
-                        )
-                    },
-                    modifier = commonModifier,
-                    update = { view ->
-                        if (isGesture) {
-                            view.setOnLongClickListener {
+        if (appWidgetInfo != null) {
+            AndroidView(
+                factory = {
+                    appWidgetHost.createView(
+                        appWidgetId = data.appWidgetId,
+                        appWidgetProviderInfo = appWidgetInfo,
+                    )
+                },
+                modifier = commonModifier,
+                update = { view ->
+                    if (isGesture) {
+                        view.setOnLongClickListener {
+                            onLongPress(
+                                scope = scope,
+                                graphicsLayer = graphicsLayer,
+                                intOffset = intOffset,
+                                intSize = intSize,
+                                gridItemSource = GridItemSource.Existing(gridItem = gridItem),
+                                sharedElementKey = SharedElementKey(
+                                    id = gridItem.id,
+                                    parent = SharedElementKey.Parent.Grid,
+                                ),
+                                onUpdateGridItemSource = onUpdateGridItemSource,
+                                onUpdateImageBitmap = onUpdateImageBitmap,
+                                onUpdateIsLongPress = onUpdateIsLongPress,
+                                onUpdateOverlayBounds = onUpdateOverlayBounds,
+                                onUpdateSharedElementKey = onUpdateSharedElementKey,
+                                onShowGridItemPopup = onShowGridItemPopup,
+                                onUpdateAssociate = onUpdateAssociate,
+                            )
+
+                            true
+                        }
+                    }
+                },
+            )
+        } else {
+            AsyncImage(
+                model = data.preview ?: data.icon,
+                contentDescription = null,
+                modifier = commonModifier.pointerInput(key1 = drag) {
+                    detectTapGestures(
+                        onLongPress = if (isGesture) {
+                            {
                                 onLongPress(
                                     scope = scope,
                                     graphicsLayer = graphicsLayer,
@@ -652,46 +674,13 @@ private fun SharedTransitionScope.InteractiveWidgetGridItem(
                                     onShowGridItemPopup = onShowGridItemPopup,
                                     onUpdateAssociate = onUpdateAssociate,
                                 )
-
-                                true
                             }
-                        }
-                    },
-                )
-            } else {
-                AsyncImage(
-                    model = data.preview ?: data.icon,
-                    contentDescription = null,
-                    modifier = commonModifier.pointerInput(key1 = drag) {
-                        detectTapGestures(
-                            onLongPress = if (isGesture) {
-                                {
-                                    onLongPress(
-                                        scope = scope,
-                                        graphicsLayer = graphicsLayer,
-                                        intOffset = intOffset,
-                                        intSize = intSize,
-                                        gridItemSource = GridItemSource.Existing(gridItem = gridItem),
-                                        sharedElementKey = SharedElementKey(
-                                            id = gridItem.id,
-                                            parent = SharedElementKey.Parent.Grid,
-                                        ),
-                                        onUpdateGridItemSource = onUpdateGridItemSource,
-                                        onUpdateImageBitmap = onUpdateImageBitmap,
-                                        onUpdateIsLongPress = onUpdateIsLongPress,
-                                        onUpdateOverlayBounds = onUpdateOverlayBounds,
-                                        onUpdateSharedElementKey = onUpdateSharedElementKey,
-                                        onShowGridItemPopup = onShowGridItemPopup,
-                                        onUpdateAssociate = onUpdateAssociate,
-                                    )
-                                }
-                            } else {
-                                null
-                            },
-                        )
-                    },
-                )
-            }
+                        } else {
+                            null
+                        },
+                    )
+                },
+            )
         }
     }
 }
@@ -757,17 +746,13 @@ private fun SharedTransitionScope.InteractiveShortcutInfoGridItem(
 
     val customShortLabel = data.customShortLabel ?: data.shortLabel
 
-    val alpha = if (hasShortcutHostPermission && data.isEnabled) 1f else 0.3f
-
     val hasInteraction = isSelected && isLongPress && (drag == Drag.Start || drag == Drag.Dragging)
 
     val isVisibleWhiteBox = isSelected && drag == Drag.Dragging
 
     val isGesture = !isLongPress && !isCache
 
-    val sizeResolver = rememberConstraintsSizeResolver()
-
-    val painter = rememberAsyncImagePainter(model = customIcon)
+    val alpha = if (hasInteraction) 0f else 1f
 
     LaunchedEffect(key1 = drag) {
         handleDrag(
@@ -853,59 +838,66 @@ private fun SharedTransitionScope.InteractiveShortcutInfoGridItem(
         horizontalAlignment = horizontalAlignment,
         verticalArrangement = verticalArrangement,
     ) {
-        if (!hasInteraction) {
-            Box(modifier = Modifier.size(gridItemSettings.iconSize.dp)) {
-                Image(
-                    painter = painter,
-                    modifier = Modifier
-                        .then(sizeResolver)
-                        .matchParentSize()
-                        .alpha(alpha)
-                        .drawWithContent {
-                            graphicsLayer.record {
-                                this@drawWithContent.drawContent()
-                            }
-
-                            drawLayer(graphicsLayer)
+        Box(
+            modifier = Modifier
+                .size(gridItemSettings.iconSize.dp)
+                .alpha(alpha),
+        ) {
+            AsyncImage(
+                model = customIcon,
+                modifier = Modifier
+                    .matchParentSize()
+                    .alpha(alpha)
+                    .drawWithContent {
+                        graphicsLayer.record {
+                            this@drawWithContent.drawContent()
                         }
-                        .onGloballyPositioned { layoutCoordinates ->
-                            intOffset = layoutCoordinates.positionInRoot().round()
 
-                            intSize = layoutCoordinates.size
-                        }
-                        .sharedElementWithCallerManagedVisibility(
-                            rememberSharedContentState(
-                                key = SharedElementKey(
-                                    id = gridItem.id,
-                                    parent = SharedElementKey.Parent.Grid,
+                        drawLayer(graphicsLayer)
+                    }
+                    .onGloballyPositioned { layoutCoordinates ->
+                        intOffset = layoutCoordinates.positionInRoot().round()
+
+                        intSize = layoutCoordinates.size
+                    }
+                    .run {
+                        if (!hasInteraction) {
+                            sharedElementWithCallerManagedVisibility(
+                                rememberSharedContentState(
+                                    key = SharedElementKey(
+                                        id = gridItem.id,
+                                        parent = SharedElementKey.Parent.Grid,
+                                    ),
                                 ),
-                            ),
-                            visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
-                        ),
-                    contentDescription = null,
-                )
+                                visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
+                            )
+                        } else {
+                            this
+                        }
+                    },
+                contentDescription = null,
+            )
 
-                AsyncImage(
-                    model = data.eblanApplicationInfoIcon,
-                    modifier = Modifier
-                        .size((gridItemSettings.iconSize * 0.25).dp)
-                        .align(Alignment.BottomEnd)
-                        .alpha(alpha),
-                    contentDescription = null,
-                )
-            }
+            AsyncImage(
+                model = data.eblanApplicationInfoIcon,
+                modifier = Modifier
+                    .size((gridItemSettings.iconSize * 0.25).dp)
+                    .align(Alignment.BottomEnd)
+                    .alpha(alpha),
+                contentDescription = null,
+            )
+        }
 
-            if (gridItemSettings.showLabel) {
-                Text(
-                    modifier = Modifier.alpha(alpha),
-                    text = customShortLabel,
-                    color = textColor,
-                    textAlign = TextAlign.Center,
-                    maxLines = maxLines,
-                    fontSize = gridItemSettings.textSize.sp,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+        if (gridItemSettings.showLabel) {
+            Text(
+                modifier = Modifier.alpha(alpha),
+                text = customShortLabel,
+                color = textColor,
+                textAlign = TextAlign.Center,
+                maxLines = maxLines,
+                fontSize = gridItemSettings.textSize.sp,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
@@ -968,6 +960,8 @@ private fun SharedTransitionScope.InteractiveFolderGridItem(
     val isVisibleWhiteBox = isSelected && drag == Drag.Dragging
 
     val isGesture = !isLongPress && !isCache
+
+    val alpha = if (hasInteraction) 0f else 1f
 
     LaunchedEffect(key1 = drag) {
         handleDrag(
@@ -1045,90 +1039,102 @@ private fun SharedTransitionScope.InteractiveFolderGridItem(
         horizontalAlignment = horizontalAlignment,
         verticalArrangement = verticalArrangement,
     ) {
-        if (!hasInteraction) {
-            val commonModifier = Modifier
-                .size(gridItemSettings.iconSize.dp)
-                .drawWithContent {
-                    graphicsLayer.record {
-                        this@drawWithContent.drawContent()
-                    }
-
-                    drawLayer(graphicsLayer)
+        val commonModifier = Modifier
+            .size(gridItemSettings.iconSize.dp)
+            .alpha(alpha)
+            .drawWithContent {
+                graphicsLayer.record {
+                    this@drawWithContent.drawContent()
                 }
-                .onGloballyPositioned { layoutCoordinates ->
-                    intOffset = layoutCoordinates.positionInRoot().round()
 
-                    intSize = layoutCoordinates.size
-                }
-                .sharedElementWithCallerManagedVisibility(
-                    rememberSharedContentState(
-                        key = SharedElementKey(
-                            id = gridItem.id,
-                            parent = SharedElementKey.Parent.Grid,
+                drawLayer(graphicsLayer)
+            }
+            .onGloballyPositioned { layoutCoordinates ->
+                intOffset = layoutCoordinates.positionInRoot().round()
+
+                intSize = layoutCoordinates.size
+            }
+            .run {
+                if (!hasInteraction) {
+                    sharedElementWithCallerManagedVisibility(
+                        rememberSharedContentState(
+                            key = SharedElementKey(
+                                id = gridItem.id,
+                                parent = SharedElementKey.Parent.Grid,
+                            ),
                         ),
-                    ),
-                    visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
-                )
+                        visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
+                    )
+                } else {
+                    this
+                }
+            }
 
-            if (data.icon != null) {
-                AsyncImage(
-                    model = data.icon,
-                    contentDescription = null,
-                    modifier = commonModifier,
-                )
-            } else {
-                Box(
-                    modifier = commonModifier.background(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(5.dp),
-                    ),
+        if (data.icon != null) {
+            AsyncImage(
+                model = data.icon,
+                contentDescription = null,
+                modifier = commonModifier,
+            )
+        } else {
+            Box(
+                modifier = commonModifier.background(
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(5.dp),
+                ),
+            ) {
+                FlowRow(
+                    modifier = Modifier.matchParentSize(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    maxItemsInEachRow = 3,
+                    maxLines = 3,
                 ) {
-                    FlowRow(
-                        modifier = Modifier.matchParentSize(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        maxItemsInEachRow = 3,
-                        maxLines = 3,
-                    ) {
-                        data.previewGridItemsByPage.forEach { applicationInfoFolderGridItem ->
-                            key(applicationInfoFolderGridItem.id) {
-                                val icon =
-                                    iconPackFilePaths[applicationInfoFolderGridItem.componentName]
-                                        ?: applicationInfoFolderGridItem.icon
+                    data.previewGridItemsByPage.forEach { applicationInfoFolderGridItem ->
+                        key(applicationInfoFolderGridItem.id) {
+                            val icon =
+                                iconPackFilePaths[applicationInfoFolderGridItem.componentName]
+                                    ?: applicationInfoFolderGridItem.icon
 
-                                AsyncImage(
-                                    model = Builder(LocalContext.current)
-                                        .data(applicationInfoFolderGridItem.customIcon ?: icon)
-                                        .addLastModifiedToFileCacheKey(true).build(),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size((gridItemSettings.iconSize * 0.25).dp)
-                                        .sharedElementWithCallerManagedVisibility(
-                                            rememberSharedContentState(
-                                                key = SharedElementKey(
-                                                    id = applicationInfoFolderGridItem.id,
-                                                    parent = SharedElementKey.Parent.Grid,
+                            AsyncImage(
+                                model = Builder(LocalContext.current)
+                                    .data(applicationInfoFolderGridItem.customIcon ?: icon)
+                                    .addLastModifiedToFileCacheKey(true).build(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size((gridItemSettings.iconSize * 0.25).dp)
+                                    .run {
+                                        if (!hasInteraction) {
+                                            sharedElementWithCallerManagedVisibility(
+                                                rememberSharedContentState(
+                                                    key = SharedElementKey(
+                                                        id = applicationInfoFolderGridItem.id,
+                                                        parent = SharedElementKey.Parent.Grid,
+                                                    ),
                                                 ),
-                                            ),
-                                            visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
-                                        ),
-                                )
-                            }
+                                                visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
+                                            )
+                                        } else {
+                                            this
+                                        }
+                                    },
+                            )
                         }
                     }
                 }
             }
+        }
 
-            if (gridItemSettings.showLabel) {
-                Text(
-                    text = data.label,
-                    color = textColor,
-                    textAlign = TextAlign.Center,
-                    maxLines = maxLines,
-                    fontSize = gridItemSettings.textSize.sp,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+        if (gridItemSettings.showLabel) {
+            Text(
+                modifier = Modifier.alpha(alpha),
+                text = data.label,
+                color = textColor,
+                textAlign = TextAlign.Center,
+                maxLines = maxLines,
+                fontSize = gridItemSettings.textSize.sp,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
@@ -1227,14 +1233,7 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
 
     val isGesture = !isLongPress && !isCache
 
-    val sizeResolver = rememberConstraintsSizeResolver()
-
-    val painter = rememberAsyncImagePainter(
-        model = Builder(LocalContext.current).data(icon)
-            .addLastModifiedToFileCacheKey(true)
-            .size(sizeResolver)
-            .build(),
-    )
+    val alpha = if (hasInteraction) 0f else 1f
 
     LaunchedEffect(key1 = drag) {
         handleDrag(
@@ -1312,27 +1311,29 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
         horizontalAlignment = horizontalAlignment,
         verticalArrangement = verticalArrangement,
     ) {
-        if (!hasInteraction) {
-            Box(modifier = Modifier.size(gridItemSettings.iconSize.dp)) {
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .then(sizeResolver)
-                        .matchParentSize()
-                        .drawWithContent {
-                            graphicsLayer.record {
-                                this@drawWithContent.drawContent()
-                            }
+        AsyncImage(
+            model = Builder(LocalContext.current).data(icon)
+                .addLastModifiedToFileCacheKey(true)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .size(gridItemSettings.iconSize.dp)
+                .alpha(alpha)
+                .drawWithContent {
+                    graphicsLayer.record {
+                        this@drawWithContent.drawContent()
+                    }
 
-                            drawLayer(graphicsLayer)
-                        }
-                        .onGloballyPositioned { layoutCoordinates ->
-                            intOffset = layoutCoordinates.positionInRoot().round()
+                    drawLayer(graphicsLayer)
+                }
+                .onGloballyPositioned { layoutCoordinates ->
+                    intOffset = layoutCoordinates.positionInRoot().round()
 
-                            intSize = layoutCoordinates.size
-                        }
-                        .sharedElementWithCallerManagedVisibility(
+                    intSize = layoutCoordinates.size
+                }
+                .run {
+                    if (!hasInteraction) {
+                        sharedElementWithCallerManagedVisibility(
                             rememberSharedContentState(
                                 key = SharedElementKey(
                                     id = gridItem.id,
@@ -1340,34 +1341,23 @@ private fun SharedTransitionScope.InteractiveShortcutConfigGridItem(
                                 ),
                             ),
                             visible = !isScrollInProgress && (drag == Drag.None || drag == Drag.Cancel || drag == Drag.End),
-                        ),
-                )
-
-                if (data.serialNumber != 0L) {
-                    ElevatedCard(
-                        modifier = Modifier
-                            .size((gridItemSettings.iconSize * 0.4).dp)
-                            .align(Alignment.BottomEnd),
-                    ) {
-                        Icon(
-                            imageVector = EblanLauncherIcons.Work,
-                            contentDescription = null,
-                            modifier = Modifier.padding(2.dp),
                         )
+                    } else {
+                        this
                     }
-                }
-            }
+                },
+        )
 
-            if (gridItemSettings.showLabel) {
-                Text(
-                    text = label.toString(),
-                    color = textColor,
-                    textAlign = TextAlign.Center,
-                    maxLines = maxLines,
-                    fontSize = gridItemSettings.textSize.sp,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+        if (gridItemSettings.showLabel) {
+            Text(
+                modifier = Modifier.alpha(alpha),
+                text = label.toString(),
+                color = textColor,
+                textAlign = TextAlign.Center,
+                maxLines = maxLines,
+                fontSize = gridItemSettings.textSize.sp,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
