@@ -91,9 +91,11 @@ fun CustomIcon(
                 Text(text = customIcon ?: "None")
             }
 
-            IconButton(onClick = {
-                expanded = !expanded
-            }) {
+            IconButton(
+                onClick = {
+                    expanded = !expanded
+                },
+            ) {
                 Icon(
                     imageVector = if (expanded) {
                         EblanLauncherIcons.ArrowDropUp
@@ -105,7 +107,7 @@ fun CustomIcon(
             }
         }
 
-        if (expanded && packageManagerIconPackInfos.isNotEmpty()) {
+        if (expanded) {
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
 
             SettingsColumn(
