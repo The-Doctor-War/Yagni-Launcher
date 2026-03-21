@@ -26,8 +26,8 @@ android {
 
     defaultConfig {
         applicationId = "com.eblan.launcher"
-        versionCode = 51
-        versionName = "0.5.1-alpha"
+        versionCode = 52
+        versionName = "0.5.2-alpha"
     }
 
     buildTypes {
