@@ -1187,15 +1187,21 @@ private fun SharedTransitionScope.EblanApplicationInfoItem(
 
                     intSize = layoutCoordinates.size
                 }
-                .sharedElementWithCallerManagedVisibility(
-                    rememberSharedContentState(
-                        key = SharedElementKey(
-                            id = applicationScreenId,
-                            parent = SharedElementKey.Parent.SwipeY,
-                        ),
-                    ),
-                    visible = !isVisibleOverlay,
-                ),
+                .run {
+                    if (!isLongPress) {
+                        sharedElementWithCallerManagedVisibility(
+                            rememberSharedContentState(
+                                key = SharedElementKey(
+                                    id = applicationScreenId,
+                                    parent = SharedElementKey.Parent.SwipeY,
+                                ),
+                            ),
+                            visible = !isVisibleOverlay,
+                        )
+                    } else {
+                        this
+                    }
+                },
         )
 
         if (appDrawerSettings.gridItemSettings.showLabel) {
