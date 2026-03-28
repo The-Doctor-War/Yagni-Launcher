@@ -25,6 +25,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 class Migration12To13Test {
@@ -41,8 +43,8 @@ class Migration12To13Test {
     @Throws(IOException::class)
     fun migrate12To13() {
         // Create database at version 12
-        helper.createDatabase(testDatabase, 12).apply {
-            execSQL(
+        helper.createDatabase(testDatabase, 12).use { db ->
+            db.execSQL(
                 """
         INSERT INTO EblanShortcutInfoEntity (
             shortcutId, 
@@ -67,8 +69,6 @@ class Migration12To13Test {
         )
                 """.trimIndent(),
             )
-
-            close()
         }
 
         // Run migration → validate version 13
@@ -78,14 +78,20 @@ class Migration12To13Test {
             true,
             Migration12To13(),
         ).use { db ->
-            val cursor = db.query("SELECT * FROM EblanShortcutInfoEntity")
+            db.query("SELECT * FROM EblanShortcutInfoEntity").use { cursor ->
+                assertTrue(cursor.moveToFirst())
 
-            assert(cursor.moveToFirst())
-
-            assert(cursor.getString(cursor.getColumnIndex("shortcutId")) == "id_1")
-            assert(cursor.getString(cursor.getColumnIndex("packageName")) == "com.example.app")
-            assert(cursor.getLong(cursor.getColumnIndex("serialNumber")) == 101L)
-            assert(cursor.getLong(cursor.getColumnIndex("lastChangedTimestamp")) == 123456789L)
+                assertEquals("id_1", cursor.getString(cursor.getColumnIndexOrThrow("shortcutId")))
+                assertEquals(
+                    "com.example.app",
+                    cursor.getString(cursor.getColumnIndexOrThrow("packageName")),
+                )
+                assertEquals(101L, cursor.getLong(cursor.getColumnIndexOrThrow("serialNumber")))
+                assertEquals(
+                    123456789L,
+                    cursor.getLong(cursor.getColumnIndexOrThrow("lastChangedTimestamp")),
+                )
+            }
         }
     }
 }

@@ -17,21 +17,20 @@
  */
 package com.eblan.launcher.data.room
 
-import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.eblan.launcher.data.room.migration.Migration12To13
 import com.eblan.launcher.data.room.migration.Migration13To14
-import com.eblan.launcher.data.room.migration.Migration3To4
-import com.eblan.launcher.data.room.migration.Migration7To8
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
-class MigrationAllTest {
+class Migration13To14Test {
+
     private val testDatabase = "migration-test"
 
     @get:Rule
@@ -42,27 +41,43 @@ class MigrationAllTest {
 
     @Test
     @Throws(IOException::class)
-    fun migrateAll() {
-        helper.createDatabase(testDatabase, 1).apply {
-            close()
+    fun migrate13To14() {
+        helper.createDatabase(testDatabase, 13).use { db ->
+            db.execSQL(
+                """
+                INSERT INTO EblanApplicationInfoTagEntity (id, name)
+                VALUES (1, 'Work')
+                """.trimIndent(),
+            )
         }
 
-        Room.databaseBuilder(
-            InstrumentationRegistry.getInstrumentation().targetContext,
-            EblanDatabase::class.java,
+        helper.runMigrationsAndValidate(
             testDatabase,
-        ).addMigrations(
-            Migration3To4(),
-            Migration7To8(),
-            Migration12To13(),
+            14,
+            true,
             Migration13To14(),
-        ).fallbackToDestructiveMigrationFrom(
-            dropAllTables = true,
-            1,
-            2,
-            11,
-        ).build().apply {
-            openHelper.writableDatabase.close()
+        ).use { db ->
+            // 1. Verify existing data still exists
+            db.query("SELECT * FROM EblanApplicationInfoTagEntity").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(1L, cursor.getLong(cursor.getColumnIndexOrThrow("id")))
+                assertEquals("Work", cursor.getString(cursor.getColumnIndexOrThrow("name")))
+            }
+
+            // 2. Verify duplicates are now allowed
+            db.execSQL(
+                """
+                INSERT INTO EblanApplicationInfoTagEntity (name)
+                VALUES ('Work')
+                """.trimIndent(),
+            )
+
+            db.query(
+                "SELECT COUNT(*) FROM EblanApplicationInfoTagEntity WHERE name = 'Work'",
+            ).use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(2, cursor.getInt(0))
+            }
         }
     }
 }
