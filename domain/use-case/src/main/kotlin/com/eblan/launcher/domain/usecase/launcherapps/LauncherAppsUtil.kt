@@ -401,13 +401,12 @@ internal suspend fun AppWidgetManagerAppWidgetProviderInfo.toEblanAppWidgetProvi
     description = description,
 )
 
-internal fun EblanApplicationInfo.toFastLauncherAppsActivityInfo(): FastLauncherAppsActivityInfo =
-    FastLauncherAppsActivityInfo(
-        serialNumber = serialNumber,
-        componentName = componentName,
-        packageName = packageName,
-        lastUpdateTime = lastUpdateTime,
-    )
+internal fun EblanApplicationInfo.toFastLauncherAppsActivityInfo(): FastLauncherAppsActivityInfo = FastLauncherAppsActivityInfo(
+    serialNumber = serialNumber,
+    componentName = componentName,
+    packageName = packageName,
+    lastUpdateTime = lastUpdateTime,
+)
 
 internal fun EblanApplicationInfo.toSyncEblanApplicationInfo() = SyncEblanApplicationInfo(
     serialNumber = serialNumber,
@@ -454,14 +453,13 @@ internal suspend fun ShortcutConfigActivityInfo.toEblanShortcutConfig(
     ),
 )
 
-internal fun EblanAppWidgetProviderInfo.toDeleteEblanAppWidgetProviderInfo(): DeleteEblanAppWidgetProviderInfo =
-    DeleteEblanAppWidgetProviderInfo(
-        componentName = componentName,
-        serialNumber = serialNumber,
-        packageName = packageName,
-        preview = preview,
-        applicationIcon = applicationIcon,
-    )
+internal fun EblanAppWidgetProviderInfo.toDeleteEblanAppWidgetProviderInfo(): DeleteEblanAppWidgetProviderInfo = DeleteEblanAppWidgetProviderInfo(
+    componentName = componentName,
+    serialNumber = serialNumber,
+    packageName = packageName,
+    preview = preview,
+    applicationIcon = applicationIcon,
+)
 
 internal fun LauncherAppsShortcutInfo.toEblanShortcutInfo(): EblanShortcutInfo = EblanShortcutInfo(
     shortcutId = shortcutId,
@@ -475,21 +473,19 @@ internal fun LauncherAppsShortcutInfo.toEblanShortcutInfo(): EblanShortcutInfo =
     lastChangedTimestamp = lastChangedTimestamp,
 )
 
-internal fun EblanShortcutInfo.toDeleteEblanShortcutInfo(): DeleteEblanShortcutInfo =
-    DeleteEblanShortcutInfo(
-        serialNumber = serialNumber,
-        shortcutId = shortcutId,
-        packageName = packageName,
-        icon = icon,
-    )
+internal fun EblanShortcutInfo.toDeleteEblanShortcutInfo(): DeleteEblanShortcutInfo = DeleteEblanShortcutInfo(
+    serialNumber = serialNumber,
+    shortcutId = shortcutId,
+    packageName = packageName,
+    icon = icon,
+)
 
-internal fun EblanShortcutConfig.toDeleteEblanShortcutConfig(): DeleteEblanShortcutConfig =
-    DeleteEblanShortcutConfig(
-        componentName = componentName,
-        packageName = packageName,
-        serialNumber = serialNumber,
-        activityIcon = activityIcon,
-    )
+internal fun EblanShortcutConfig.toDeleteEblanShortcutConfig(): DeleteEblanShortcutConfig = DeleteEblanShortcutConfig(
+    componentName = componentName,
+    packageName = packageName,
+    serialNumber = serialNumber,
+    activityIcon = activityIcon,
+)
 
 private suspend fun resolveApplicationIcon(
     fileManager: FileManager,
